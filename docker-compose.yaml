@@ -1,0 +1,13 @@
+version: '3.1'
+
+services:
+
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: dogs
+      POSTGRES_USER: dogs
+      POSTGRES_PASSWORD: dogs
+    ports:
+      - 5432:5432
