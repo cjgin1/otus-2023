@@ -21,7 +21,7 @@ case class VolunteerRepository(ctx: MainDbContext) extends CommonRepository[Volu
     run {
       data.filter(d =>
         lift(name.map(_.toLowerCase)).forall(v => d.name.toLowerCase like v) &&
-          lift(document.map(_.toLowerCase)).forall(v => d.document like v) &&
+          lift(document.map(_.toLowerCase)).forall(v => d.document.toLowerCase like v) &&
           lift(bt).forall(v => d.birthdate == dateFuncS(v))
       )
     }

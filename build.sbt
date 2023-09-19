@@ -26,9 +26,3 @@ val dogsBackend = project in file("dogs-backend") settings(
     "org.postgresql" % "postgresql" % "42.5.4"
   )
 )
-
-val dogsClient = project in file("dogs-client") settings(
-  name := "dogs-client",
-  version := "1.0"
-)
-

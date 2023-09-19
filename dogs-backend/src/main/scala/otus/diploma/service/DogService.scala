@@ -10,25 +10,28 @@ import zio.{ZIO, ZLayer}
 
 case class DogService(ctx: MainDbContext, dogRepository: DogRepository, dogViewRepository: DogViewRepository,
                       breedRepository: BreedRepository) extends CommonService{
-  def getAll(name: Option[String], breedName: Option[String]): ZIO[Any, Throwable, List[DogResponse]] = transactionZIO {
-    dogViewRepository.getAll(name.map(likePattern), breedName.map(likePattern))
-  }
+  def getAll(name: Option[String], breedName: Option[String], volunteerName: Option[String],
+             volunteerDocument: Option[String]): ZIO[Any, Throwable, List[DogResponse]] =
+    transactionZIO {
+      dogViewRepository.getAll(name.map(likePattern), breedName.map(likePattern), volunteerName.map(likePattern),
+        volunteerDocument.map(likePattern))
+    }
 
-  def add(rq: AddDogRequest): ZIO[BreedRepository, Throwable, Unit] = transactionZIO {
+  def add(rq: AddDogRequest): ZIO[BreedRepository, Throwable, Long] = transactionZIO {
     for {
       bName <- ZIO.some(likePattern(rq.breedName))
       breeds <- BreedRepository.getAll(bName)
       b <- singleEntity(breeds, breedRepository.entityName)
-      uuid <- genUUID
-      ts <- currentTimestamp
-      _ <- dogRepository.add(
+      uuid <- genUUID()
+      ts <- currentTimestamp()
+      id <- dogRepository.add(
         Dog(
           name = rq.name,
           idSerial = uuid,
           registrationDate = ts,
           breedId = b.id)
       )
-    } yield()
+    } yield id
   }
 
   def delete(id: Long): ZIO[Any, Throwable, Long] = transactionZIO {
@@ -42,11 +45,17 @@ case class DogService(ctx: MainDbContext, dogRepository: DogRepository, dogViewR
 }
 
 object DogService{
-  def getAll(name: Option[String], breedName: Option[String]): ZIO[DogService, Throwable, List[DogResponse]] =
-    ZIO.serviceWithZIO[DogService](_.getAll(name, breedName))
+  val service = ZIO.serviceWithZIO[DogService]
 
-  def add(rq: AddDogRequest): ZIO[BreedRepository with DogService, Throwable, Unit] =
-    ZIO.serviceWithZIO[DogService](_.add(rq))
+  def getAll(name: Option[String], breedName: Option[String], volunteerName: Option[String],
+             volunteerDocument: Option[String]): ZIO[DogService, Throwable, List[DogResponse]] =
+    service(_.getAll(name, breedName, volunteerName, volunteerDocument))
+
+  def add(rq: AddDogRequest): ZIO[BreedRepository with DogService, Throwable, Long] =
+    service(_.add(rq))
+
+  def delete(id: Long): ZIO[DogService, Throwable, Long] =
+    service(_.delete(id))
 
   val live = ZLayer.fromFunction(DogService(_, _, _, _))
 }

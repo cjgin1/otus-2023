@@ -39,7 +39,7 @@ trait CommonService {
     }
   } yield res
 
-  def genUUID: Task[UUID] = ZIO.attempt(UUID.randomUUID())
+  def genUUID(): Task[UUID] = ZIO.attempt(UUID.randomUUID())
 
-  def currentTimestamp: Task[Timestamp] = ZIO.attempt(Timestamp.valueOf(LocalDateTime.now()))
+  def currentTimestamp(): Task[Timestamp] = ZIO.attempt(Timestamp.valueOf(LocalDateTime.now()))
 }

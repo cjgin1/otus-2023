@@ -1,48 +1,41 @@
 package otus.diploma
 
+import otus.diploma.app.{DogApp, FosterHostApp, VolunteerApp}
 import otus.diploma.db.contexts.{MainDbContext, MainDbDataSource}
 import otus.diploma.db.migration.DbMigration
-import otus.diploma.db.repositories.{BreedRepository, DogRepository, FosterHostRepository, VolunteerRepository}
-import otus.diploma.service.DogService
+import otus.diploma.db.repositories.{BreedRepository, DogRepository, DogViewRepository, FosterHostRepository, VolunteerRepository}
+import otus.diploma.service.{DogService, FosterHostService, VolunteerService}
 import zio.ZLayer.Debug
 import zio.http._
-import zio.{Console, ZIO, ZIOAppDefault}
-
-import java.sql.Date
+import zio._
 
 object Main extends ZIOAppDefault {
 
-  val app = Http.collect[Request] {
-    case Method.GET -> Root / "text" => Response.text("Hello World!")
-  }
+  private val app = (DogApp.app ++ VolunteerApp.app ++ FosterHostApp.app) @@
+    HttpAppMiddleware.addHeader("http-app", "dogs-backend") @@ HttpAppMiddleware.debug
 
-  override def run = (for {
-    _ <- DbMigration.migrate("db_init/main_db/changelog.xml")
-    s <- ZIO.service[MainDbContext]
-    q <- BreedRepository.getAll(None)
-    _ <- Console.printLine(q.mkString)
-    q <- BreedRepository.getAll(Some("%к%"))
-    _ <- Console.printLine(q.mkString)
-    q <- DogRepository.getAll(None, None)
-    _ <- Console.printLine(q.mkString)
-    q <- DogRepository.getAll(Some("%obik%"), Some(1))
-    _ <- Console.printLine(q.mkString)
-    q <- DogRepository.getAll(None, Some(1))
-    _ <- Console.printLine(q.mkString)
-    q <- DogRepository.getAll(Some("%sko%"), None)
-    _ <- Console.printLine(q.mkString)
-    d <- ZIO.some(Date.valueOf("2010-01-01"))
-    q <- VolunteerRepository.getAll(None, None, d)
-    _ <- Console.printLine(q.mkString)
-    _ <- Server.serve(app).exit
-  } yield ()).provide(
-    Server.default,
-    BreedRepository.live,
-    DogRepository.live,
-    VolunteerRepository.live,
-    FosterHostRepository.live,
-    DogService.live,
-    MainDbDataSource.live >>> (MainDbContext.live ++ DbMigration.live),
-    Debug.mermaid
-  )
+  private val program = DbMigration.migrate("db_init/main_db/changelog.xml") *> Server.serve(app.withDefaultErrorResponse)
+
+  override def run: ZIO[Any, Throwable, Unit] = for {
+    host <- ZIO.config(Config.string("host"))
+    port <- ZIO.config(Config.int("port"))
+    _ <- program.provide(
+      // server
+      Server.defaultWith(_.binding(host, port)),
+      //repos
+      BreedRepository.live,
+      DogRepository.live,
+      DogViewRepository.live,
+      VolunteerRepository.live,
+      FosterHostRepository.live,
+      // services
+      DogService.live,
+      VolunteerService.live,
+      FosterHostService.live,
+      // db
+      MainDbDataSource.live >>> (MainDbContext.live ++ DbMigration.live),
+      // debug deps
+      Debug.mermaid
+    )
+  } yield ()
 }

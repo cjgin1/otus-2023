@@ -12,8 +12,8 @@ private [mappers] trait Volunteer2Response {
         model.id,
         model.name,
         model.document,
-        model.birthdate,
-        model.registrationDate
+        model.birthdate.toLocalDate,
+        model.registrationDate.toLocalDateTime
       )
   }
 }

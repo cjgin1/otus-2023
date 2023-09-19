@@ -18,12 +18,13 @@ case class VolunteerService(ctx: MainDbContext, volunteerRepository: VolunteerRe
 
   def add(rq: AddVolunteerRequest): ZIO[Any, Throwable, Long] = transactionZIO{
     for{
-      ts <- currentTimestamp
+      ts <- currentTimestamp()
+      birthdate <- ZIO.attempt(Date.valueOf(rq.birthDate))
       id <- volunteerRepository.add(
         Volunteer(
           name = rq.name,
           document = rq.document,
-          birthdate = rq.birthDate,
+          birthdate = birthdate,
           registrationDate = ts
         )
       )
@@ -38,4 +39,19 @@ case class VolunteerService(ctx: MainDbContext, volunteerRepository: VolunteerRe
       id <- volunteerRepository.delete(id)
     } yield id
   }
+}
+
+object VolunteerService{
+  private val service = ZIO.serviceWithZIO[VolunteerService]
+  def getAll(name: Option[String], document: Option[String],
+             birthDate: Option[Date]): ZIO[VolunteerService, Throwable, List[VolunteerResponse]] =
+    service(_.getAll(name, document, birthDate))
+
+  def add(rq: AddVolunteerRequest): ZIO[VolunteerService, Throwable, Long] =
+    service(_.add(rq))
+
+  def delete(id: Long): ZIO[VolunteerService, Throwable, Long] =
+    service(_.delete(id))
+
+  val live = ZLayer.fromFunction(VolunteerService(_, _))
 }
