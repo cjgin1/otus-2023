@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.4.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-4.5.xsd">
+    <changeSet  author="dikarev-de"  id="create-breed-table">
+        <createTable tableName="breed">
+            <column name="id" type="bigserial">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column  name="name"  type="varchar2">
+                <constraints unique="true" nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet  author="dikarev-de"  id="create-dog-table">
+        <createTable tableName="dog">
+            <column name="id" type="bigserial">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column  name="name"  type="varchar2">
+                <constraints nullable="false"/>
+            </column>
+            <column  name="id_serial"  type="uuid" defaultValueComputed="gen_random_uuid()">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column  name="registration_date"  type="timestamp" defaultValueComputed="current_timestamp">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="breed_id" type="bigint">
+                <constraints nullable="false" referencedTableName="breed" referencedColumnNames="id" foreignKeyName="dog_breed_fk"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="dog" columnNames="name,id_serial"/>
+    </changeSet>
+    <changeSet  author="dikarev-de"  id="create-volunteer-table">
+        <createTable tableName="volunteer">
+            <column name="id" type="bigserial">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column  name="name"  type="varchar2">
+                <constraints nullable="false"/>
+            </column>
+            <column name="birthdate" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column  name="document"  type="varchar2" >
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column  name="registration_date"  type="timestamp" defaultValueComputed="current_timestamp">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="volunteer" columnNames="name,birthdate,document"/>
+    </changeSet>
+    <changeSet  author="dikarev-de"  id="create-foster-host-table">
+        <createTable tableName="foster_host">
+            <column name="id" type="bigserial">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column  name="volunteer_id"  type="bigint">
+                <constraints nullable="false" foreignKeyName="foster_host-volunteer" referencedTableName="volunteer" referencedColumnNames="id"/>
+            </column>
+            <column  name="dog_id"  type="bigint" >
+                <constraints nullable="false" foreignKeyName="foster_host-dog" referencedTableName="dog" referencedColumnNames="id"/>
+            </column>
+            <column  name="registration_date"  type="timestamp" defaultValueComputed="current_timestamp">
+                <constraints nullable="false" unique="true"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="foster_host" columnNames="volunteer_id,dog_id"/>
+    </changeSet>
+    <changeSet author="dikarev-de" id="fill-breed-table" >
+        <insert tableName="breed">
+            <column name="name">Корги</column>
+        </insert>
+        <insert tableName="breed">
+            <column name="name">Кавказская овчарка</column>
+        </insert>
+        <insert tableName="breed">
+            <column name="name">Французский пудель</column>
+        </insert>
+        <insert tableName="breed">
+            <column name="name">Алабай</column>
+        </insert>
+        <insert tableName="breed">
+            <column name="name">Чихуа-хуа</column>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
