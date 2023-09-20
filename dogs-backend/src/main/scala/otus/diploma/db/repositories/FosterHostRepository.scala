@@ -2,12 +2,12 @@ package otus.diploma.db.repositories
 
 import otus.diploma.db.contexts.MainDbContext
 import otus.diploma.db.model.FosterHost
-import otus.diploma.db.repositories.common.CommonRepository
+import otus.diploma.db.repositories.common.{CommonRepository, WithForUpdate}
 import zio._
 
 import java.sql.SQLException
 
-case class FosterHostRepository(ctx: MainDbContext) extends CommonRepository[FosterHost]{
+case class FosterHostRepository(ctx: MainDbContext) extends CommonRepository[FosterHost] with WithForUpdate[FosterHost] {
   import ctx._
 
   private val data = quote(query[FosterHost])
@@ -20,6 +20,10 @@ case class FosterHostRepository(ctx: MainDbContext) extends CommonRepository[Fos
 
   def getById(id: Long): ZIO[Any, SQLException, List[FosterHost]] = run {
     data.filter(_.id == lift(id)).take(1)
+  }
+
+  def forUpdate(id: Long): ZIO[Any, SQLException, List[FosterHost]] = run {
+    data.filter(_.id == lift(id)).take(1).forUpdate()
   }
 
   def getByDogId(id: Long): ZIO[Any, SQLException, List[FosterHost]] = run {

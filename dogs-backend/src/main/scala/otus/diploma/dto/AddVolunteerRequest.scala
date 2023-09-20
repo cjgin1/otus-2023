@@ -4,7 +4,7 @@ import zio.json._
 
 import java.time.LocalDate
 
-case class AddVolunteerRequest(name: String, document: String, birthDate: LocalDate)
+case class AddVolunteerRequest(name: String, document: String, birthdate: LocalDate)
 
 object AddVolunteerRequest {
   implicit val decoder: JsonDecoder[AddVolunteerRequest] = DeriveJsonDecoder.gen[AddVolunteerRequest]

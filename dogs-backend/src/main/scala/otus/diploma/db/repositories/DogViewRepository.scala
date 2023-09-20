@@ -16,8 +16,20 @@ case class DogViewRepository(ctx: MainDbContext) {
       .join(query[Breed]).on((d, b) => d.breedId == b.id)
       .leftJoin(query[FosterHost]).on{case ((d, _), f) => d.id == f.dogId }
       .leftJoin(query[Volunteer]).on{ case ((_, f), v) => f.exists(_.volunteerId == v.id) }
-      .map { case (((d, b), _), v) =>
-        DogView(d.id, d.name, d.idSerial, d.registrationDate, b.id, b.name, v.map(_.id), v.map(_.name), v.map(_.document))
+      .map { case (((d, b), f), v) =>
+        DogView(
+          d.id,
+          d.name,
+          d.idSerial,
+          d.registrationDate,
+          b.id,
+          b.name,
+          f.map(_.id),
+          f.map(_.registrationDate),
+          v.map(_.id),
+          v.map(_.name),
+          v.map(_.document)
+        )
       }
   )
 

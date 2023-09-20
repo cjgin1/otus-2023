@@ -16,6 +16,8 @@ case class DogResponse(id: Long, name: String,
                        registrationDate: LocalDateTime,
                        breedId: Long,
                        breedName: String,
+                       fosterHostId: Option[Long],
+                       fosterHostRegistrationDate: Option[LocalDateTime],
                        volunteerId: Option[Long],
                        volunteerName: Option[String],
                        volunteerDocument: Option[String])

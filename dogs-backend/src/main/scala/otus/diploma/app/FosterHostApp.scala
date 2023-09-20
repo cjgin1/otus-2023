@@ -15,5 +15,11 @@ object FosterHostApp extends CommonApp {
       id <- FosterHostService.add(d)
       resp <- ZIO.attempt(EntityIdResponse(id).toJsonPretty)
     } yield Response.json(resp)
+
+    case Method.DELETE -> Root / "foster_host" / "delete" / id => for {
+      id <- ZIO.attempt(id.toLong)
+      id <- FosterHostService.delete(id)
+      resp <- ZIO.attempt(EntityIdResponse(id).toJsonPretty)
+    } yield Response.json(resp)
   }
 }

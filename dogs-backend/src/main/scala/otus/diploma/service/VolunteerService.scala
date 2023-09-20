@@ -19,7 +19,7 @@ case class VolunteerService(ctx: MainDbContext, volunteerRepository: VolunteerRe
   def add(rq: AddVolunteerRequest): ZIO[Any, Throwable, Long] = transactionZIO{
     for{
       ts <- currentTimestamp()
-      birthdate <- ZIO.attempt(Date.valueOf(rq.birthDate))
+      birthdate <- ZIO.attempt(Date.valueOf(rq.birthdate))
       id <- volunteerRepository.add(
         Volunteer(
           name = rq.name,

@@ -15,6 +15,8 @@ private[mappers] trait DogView2Response {
         model.registrationDate.toLocalDateTime,
         model.breedId,
         model.breedName,
+        model.fosterHostId,
+        model.fosterHostRegistrationDate.map(_.toLocalDateTime),
         model.volunteerId,
         model.volunteerName,
         model.volunteerDocument

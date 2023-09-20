@@ -17,10 +17,19 @@ case class FosterHostService(ctx: MainDbContext, fosterHostRepository: FosterHos
       fhs <- fosterHostRepository.getByDogId(dog.id)
       fh <- singleEntityOrNone(fhs, fosterHostRepository.entityName)
       _ <- ZIO.foreach(fh)(_ => ZIO.fail(new Exception("Выбранная собака уже отдана новым хозяевам.")))
-      vols <- volunteerRepository.getById(rq.fosterHostId)
+      vols <- volunteerRepository.getById(rq.volunteerId)
       vol <- singleEntity(vols, volunteerRepository.entityName)
       ts <- currentTimestamp()
       id <- fosterHostRepository.add(FosterHost(volunteerId = vol.id, dogId = dog.id, registrationDate = ts))
+    } yield id
+  }
+
+  def delete(id: Long): ZIO[Any, Throwable, Long] = transactionZIO {
+    for {
+      _ <- fosterHostRepository.forUpdate(id)
+      fhs <- fosterHostRepository.getById(id)
+      _ <- singleEntity(fhs, fosterHostRepository.entityName)
+      id <- fosterHostRepository.delete(id)
     } yield id
   }
 
@@ -32,6 +41,10 @@ object FosterHostService{
 
   def add(rq: AddFosterHostRequest): ZIO[FosterHostService, Throwable, Long] =
     service(_.add(rq))
+
+
+  def delete(id: Long): ZIO[FosterHostService, Throwable, Long] =
+    service(_.delete(id))
 
   val live = ZLayer.fromFunction(FosterHostService(_, _, _, _))
 }

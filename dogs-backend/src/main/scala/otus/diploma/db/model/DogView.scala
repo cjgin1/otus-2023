@@ -11,6 +11,8 @@ case class DogView(override val id: Long = 0,
                    registrationDate: Timestamp,
                    breedId: Long,
                    breedName: String,
+                   fosterHostId: Option[Long],
+                   fosterHostRegistrationDate: Option[Timestamp],
                    volunteerId: Option[Long],
                    volunteerName: Option[String],
                    volunteerDocument: Option[String]) extends CommonModel
